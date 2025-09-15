@@ -1,11 +1,13 @@
-import { ConcantCollection } from '../db/models/student.js';
+import { ConcantCollection } from '../db/Contact.js';
 
-export const getAllConcants = async () => {
-  const concants = await ConcantCollection.find();
-  return concants;
+// Tüm kişileri getir
+export const getAllContacts = async () => {
+  const contacts = await ConcantCollection.find();
+  return contacts;
 };
 
-export const getConcantById = async (concantsId) => {
-  const concants = await ConcantCollection.findById(concantsId);
-  return concants; 
+// ID'ye göre kişi getir
+export const getContactById = async (contactId) => {
+  const contact = await ConcantCollection.findById(contactId);
+  return contact;
 };

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-const { Schema } = mongoose;
+const { Schema, model  } = mongoose;
 
 
 const concantshema = new Schema({
@@ -17,7 +17,7 @@ const concantshema = new Schema({
       required: false,
     },
      isFavourite   : {
-      type: boolean,
+      type: Boolean,
       default: false,
     },
      contactType    : {

@@ -1,76 +1,71 @@
-import express from "express"
-import pino from 'pino-http';
-import cors from 'cors';
-import { getAllConcants,getConcantById } from "./services/contacts";
-
-
+import express from "express";
+import pino from "pino-http";
+import cors from "cors";
+import { getAllContacts, getContactById } from "./services/contacts.js";
 
 const PORT = 3000;
 
+export const setupServer = () => {
+  const app = express();
+  app.use(express.json());
+  app.use(cors());
 
-export const setupServer =  () => {
-      const app = express();
-      app.use(express.json());
-      app.use(cors());
-
-
-
-        app.use(
+  app.use(
     pino({
       transport: {
-        target: 'pino-pretty',
+        target: "pino-pretty",
       },
-    }),
+    })
   );
-    app.use('', (req, res, next) => {
-    res.status(404).json({
-      message: 'Not found',
-    });
-  });
-    app.get('/contacts', async (req, res) => {
-    const contacts = await getAllConcants();
 
+  // app.use("/", async(req,res)=>{
+  //   message: "welcome"
+  // });
+  
+  app.get("/contacts", async (req, res, next) => {
     try {
-         res.status(200).json({
-      data: contacts,
-    });
-        
+      const contacts = await getAllContacts();
+      res.status(200).json({
+        status: 200,
+        message: "Successfully found contacts!",
+        data: contacts,
+      });
     } catch (error) {
-        console.log("sdasda  " , error);
-        
-        
+      next(error);
     }
-
-   
-
-
   });
-    app.get('/concants/:concantsId', async (req, res, next) => {
-    const { concantsId } = req.params;
-    const concant = await getConcantById(concantsId);
-
-   
-	  if (!concant) {
-	    res.status(404).json({
-		    message: 'Öğrenci bulunamadı'
-	    });
-     
-      
-	    return;
-	  }
-
-		
-    res.status(200).json({
-      data: concant,
-    });
-  });
-
 
   
+  app.get("/contacts/:contactId", async (req, res, next) => {
+    try {
+      const { contactId } = req.params;
+      const contact = await getContactById(contactId);
 
+      if (!contact) {
+        return res.status(404).json({
+          message: "Contact not found",
+        });
+      }
+
+      res.status(200).json({
+        status: 200,
+        message: `Successfully found contact with id ${contactId}!`,
+        data: contact,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+
+  app.use((req, res) => {
+    res.status(404).json({ message: "Not found" });
+  });
+
+  // Error handler
   app.use((err, req, res, next) => {
     res.status(500).json({
-      message: 'Something went wrong',
+      message: "Something went wrong",
       error: err.message,
     });
   });
@@ -78,5 +73,4 @@ export const setupServer =  () => {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
-
-}
+};
