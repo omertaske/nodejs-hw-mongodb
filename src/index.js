@@ -1,15 +1,10 @@
-import { initMongoDB,Getveri } from './db/initMongoDB.js';
-import { startServer } from './server.js';
+import { setupServer } from "./server.js"
+import { initMongoConnection } from "./db/initMongoConnection.js";
 
+const index = async () => {
+     setupServer();
+   await  initMongoConnection();
+    
+}
 
-
-const bootstrap = async () => {
-  await initMongoDB();
-  startServer();
-
-
-  console.log("getirmeye çalışılanlar  :   ");
-  
-};
-
-bootstrap();
+index();
