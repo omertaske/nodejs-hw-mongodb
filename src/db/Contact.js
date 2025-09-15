@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const { Schema, model  } = mongoose;
 
 
-const concantshema = new Schema({
+const contactSchema = new Schema({
 
      name: {
       type: String,
@@ -26,7 +26,9 @@ const concantshema = new Schema({
       default: "personal",
       enum: ['work', 'home', 'personal'],
     },
+    
 
 
-})
-export const ConcantCollection = model('concants', concantshema);
+ },
+ { timestamps: true });
+export const ConcantCollection = model('contacts', contactSchema);
