@@ -6,14 +6,17 @@ import { ConcantCollection } from "./db/Contact.js";
 import { validateBody } from "./middlewares/validateBody.js";
 import { isValidId } from "./middlewares/isValidId.js";
 import { createContactSchema, updateContactSchema } from "./validation/contactSchemas.js";
+import contactsRouter from "./routes/contacts.js";
 
 const PORT = process.env.PORT || 3000;
 
 export const setupServer = () => {
   const app = express();
+  
   app.use(express.json());
   app.use(cors());
   app.use(pino({ transport: { target: "pino-pretty" } }));
+  app.use("/contacts", contactsRouter);
 
   // GET /contacts (pagination + sorting + filtering)
   app.get("/contacts", async (req, res, next) => {

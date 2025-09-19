@@ -2,33 +2,16 @@ import mongoose from "mongoose";
 const { Schema, model  } = mongoose;
 
 
-const contactSchema = new Schema({
+const contactSchema = new Schema(
+  {
+    name: String,
+    phoneNumber: String,
+    email: String,
+    isFavourite: Boolean,
+    contactType: String,
+    userId: { type: Schema.Types.ObjectId, ref: "users", required: true }, // 👈 burası ödevin şartı
+  },
+  { timestamps: true }
+);
 
-     name: {
-      type: String,
-      required: true,
-    },
-     phoneNumber : {
-      type: String,
-      required: true,
-    },
-     email  : {
-      type: String,
-      required: false,
-    },
-     isFavourite   : {
-      type: Boolean,
-      default: false,
-    },
-     contactType    : {
-      type: String,
-      required: true,
-      default: "personal",
-      enum: ['work', 'home', 'personal'],
-    },
-    
-
-
- },
- { timestamps: true });
 export const ConcantCollection = model('contacts', contactSchema);
