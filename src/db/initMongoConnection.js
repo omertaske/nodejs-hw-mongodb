@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import mongoose from "mongoose";
-import { ConcantCollection } from "./Contact.js";
+import { ContactCollection } from "./Contact.js";
 import { config } from "dotenv";
 config();
 const user = String(process.env.MONGODB_USER);
@@ -13,8 +13,8 @@ const db = String(process.env.MONGODB_DB);
     console.log("Mongo connected!");   
     const data = await fs.readFile("contacts.json", "utf-8");
     const contacts = JSON.parse(data);
-    await ConcantCollection.deleteMany({});  
-    await ConcantCollection.insertMany(contacts);
+    await ContactCollection.deleteMany({});  
+    await ContactCollection.insertMany(contacts);
     console.log("Contacts imported!");
   } catch (err) {
     console.error("Seed error:", err);

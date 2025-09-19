@@ -2,7 +2,7 @@ import express from "express";
 import pino from "pino-http";
 import cors from "cors";
 import { getAllContacts, getContactById } from "./services/contacts.js";
-import { ConcantCollection } from "./db/Contact.js";
+import { ContactCollection } from "./db/Contact.js";
 import { validateBody } from "./middlewares/validateBody.js";
 import { isValidId } from "./middlewares/isValidId.js";
 import { createContactSchema, updateContactSchema } from "./validation/contactSchemas.js";
@@ -29,9 +29,9 @@ export const setupServer = () => {
       if (type) filter.contactType = type;
       if (isFavourite !== undefined) filter.isFavourite = isFavourite === "true";
 
-      const totalItems = await ConcantCollection.countDocuments(filter);
+      const totalItems = await ContactCollection.countDocuments(filter);
 
-      const contacts = await ConcantCollection.find(filter)
+      const contacts = await ContactCollection.find(filter)
         .sort({ [sortBy]: sortOrder === "desc" ? -1 : 1 })
         .skip((page - 1) * perPage)
         .limit(perPage);
@@ -75,7 +75,7 @@ export const setupServer = () => {
   // POST /contacts
   app.post("/contacts", validateBody(createContactSchema), async (req, res, next) => {
     try {
-      const contact = await ConcantCollection.create(req.body);
+      const contact = await ContactCollection.create(req.body);
       res.status(201).json({
         status: 201,
         message: "Successfully created contact!",
@@ -90,7 +90,7 @@ export const setupServer = () => {
   app.patch("/contacts/:contactId", isValidId, validateBody(updateContactSchema), async (req, res, next) => {
     try {
       const { contactId } = req.params;
-      const contact = await ConcantCollection.findByIdAndUpdate(contactId, req.body, { new: true });
+      const contact = await ContactCollection.findByIdAndUpdate(contactId, req.body, { new: true });
       if (!contact) {
         return res.status(404).json({ message: "Contact not found" });
       }
@@ -108,7 +108,7 @@ export const setupServer = () => {
   app.delete("/contacts/:contactId", isValidId, async (req, res, next) => {
     try {
       const { contactId } = req.params;
-      const contact = await ConcantCollection.findByIdAndDelete(contactId);
+      const contact = await ContactCollection.findByIdAndDelete(contactId);
       if (!contact) {
         return res.status(404).json({ message: "Contact not found" });
       }
