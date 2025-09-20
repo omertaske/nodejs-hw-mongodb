@@ -6,7 +6,9 @@ import { ContactCollection } from "./db/Contact.js";
 import { validateBody } from "./middlewares/validateBody.js";
 import { isValidId } from "./middlewares/isValidId.js";
 import { createContactSchema, updateContactSchema } from "./validation/contactSchemas.js";
-import contactsRouter from "./routes/contacts.js";
+import contactsRouter from "./routers/contacts.js";
+import authRouter from "./routers/auth.js";
+import cookieParser from "cookie-parser";
 
 const PORT = process.env.PORT || 3000;
 
@@ -15,10 +17,12 @@ export const setupServer = () => {
   
   app.use(express.json());
   app.use(cors());
+    app.use(cookieParser());
   app.use(pino({ transport: { target: "pino-pretty" } }));
   app.use("/contacts", contactsRouter);
+  app.use("/auth", authRouter);
 
-  // GET /contacts (pagination + sorting + filtering)
+  
   app.get("/contacts", async (req, res, next) => {
     try {
       let { page = 1, perPage = 10, sortBy = "name", sortOrder = "asc", type, isFavourite } = req.query;

@@ -1,19 +1,33 @@
 import jwt from "jsonwebtoken";
+import createHttpError from "http-errors";
+import { SessionCollection } from "../db/Session.js";
 
 const ACCESS_SECRET = process.env.JWT_SECRET_ACCESS || "access_secret";
 
-export const authenticate = (req, res, next) => {
+export const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ message: "No token provided" });
+  if (!authHeader) return next(createHttpError(401, "No token provided"));
 
   const token = authHeader.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "Invalid token format" });
+  if (!token) return next(createHttpError(401, "Invalid token format"));
 
   try {
-    const decoded = jwt.verify(token, ACCESS_SECRET);
-    req.user = { id: decoded.id };
+    
+    const payload = jwt.verify(token, ACCESS_SECRET);
+
+
+    const session = await SessionCollection.findOne({ accessToken: token, userId: payload.id });
+    if (!session) return next(createHttpError(401, "Invalid or expired token"));
+
+    if (new Date(session.accessTokenValidUntil) < new Date()) {
+      return next(createHttpError(401, "Access token expired"));
+    }
+
+   
+    req.user = { _id: session.userId };
     next();
-  } catch {
-    res.status(401).json({ message: "Invalid or expired token" });
+  } catch (err) {
+    if (err.name === "TokenExpiredError") return next(createHttpError(401, "Access token expired"));
+    next(createHttpError(401, "Invalid or expired token"));
   }
 };

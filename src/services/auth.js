@@ -1,14 +1,18 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import createHttpError from "http-errors";
 import { UserCollection } from "../db/User.js";
 import { SessionCollection } from "../db/Session.js";
 
 const ACCESS_SECRET = process.env.JWT_SECRET_ACCESS || "access_secret";
 const REFRESH_SECRET = process.env.JWT_SECRET_REFRESH || "refresh_secret";
 
+const ACCESS_TTL = "15m";
+const REFRESH_TTL = "30d";
+
 export const register = async (name, email, password) => {
   const existingUser = await UserCollection.findOne({ email });
-  if (existingUser) throw new Error("Email already in use");
+  if (existingUser) throw createHttpError(409, "Email in use");
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await UserCollection.create({ name, email, password: hashedPassword });
@@ -18,40 +22,51 @@ export const register = async (name, email, password) => {
 
 export const login = async (email, password) => {
   const user = await UserCollection.findOne({ email });
-  if (!user) throw new Error("Invalid credentials");
+  if (!user) throw createHttpError(401, "Invalid credentials");
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new Error("Invalid credentials");
+  if (!isMatch) throw createHttpError(401, "Invalid credentials");
 
-  const accessToken = jwt.sign({ id: user._id }, ACCESS_SECRET, { expiresIn: "15m" });
-  const refreshToken = jwt.sign({ id: user._id }, REFRESH_SECRET, { expiresIn: "7d" });
+  // delete existing session(s)
+  await SessionCollection.deleteMany({ userId: user._id });
+
+  const accessToken = jwt.sign({ id: user._id }, ACCESS_SECRET, { expiresIn: ACCESS_TTL });
+  const refreshToken = jwt.sign({ id: user._id }, REFRESH_SECRET, { expiresIn: REFRESH_TTL });
 
   await SessionCollection.create({
     userId: user._id,
     accessToken,
     refreshToken,
     accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
-    refreshTokenValidUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
   });
 
   return { accessToken, refreshToken };
 };
 
-export const refresh = async (refreshToken) => {
-  const session = await SessionCollection.findOne({ refreshToken });
-  if (!session) throw new Error("Invalid refresh token");
+export const refresh = async (oldRefreshToken) => {
+  const session = await SessionCollection.findOne({ refreshToken: oldRefreshToken });
+  if (!session) throw createHttpError(401, "Invalid refresh token");
 
   try {
-    const payload = jwt.verify(refreshToken, REFRESH_SECRET);
-    const newAccessToken = jwt.sign({ id: payload.id }, ACCESS_SECRET, { expiresIn: "15m" });
+    const payload = jwt.verify(oldRefreshToken, REFRESH_SECRET);
+    // delete old session
+    await SessionCollection.deleteOne({ refreshToken: oldRefreshToken });
 
-    session.accessToken = newAccessToken;
-    session.accessTokenValidUntil = new Date(Date.now() + 15 * 60 * 1000);
-    await session.save();
+    const accessToken = jwt.sign({ id: payload.id }, ACCESS_SECRET, { expiresIn: ACCESS_TTL });
+    const refreshToken = jwt.sign({ id: payload.id }, REFRESH_SECRET, { expiresIn: REFRESH_TTL });
 
-    return { accessToken: newAccessToken };
+    await SessionCollection.create({
+      userId: payload.id,
+      accessToken,
+      refreshToken,
+      accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
+      refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    });
+
+    return { accessToken, refreshToken };
   } catch {
-    throw new Error("Invalid refresh token");
+    throw createHttpError(401, "Invalid refresh token");
   }
 };
 
