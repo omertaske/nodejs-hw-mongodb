@@ -7,8 +7,8 @@ import { SessionCollection } from "../db/Session.js";
 const ACCESS_SECRET = process.env.JWT_SECRET_ACCESS || "access_secret";
 const REFRESH_SECRET = process.env.JWT_SECRET_REFRESH || "refresh_secret";
 
-const ACCESS_TTL = "15m";
-const REFRESH_TTL = "30d";
+const ACCESS_TTL = "15m"; // access token 15 dakika
+const REFRESH_TTL = "30d"; // refresh token 30 gün
 
 export const register = async (name, email, password) => {
   const existingUser = await UserCollection.findOne({ email });
@@ -17,6 +17,7 @@ export const register = async (name, email, password) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await UserCollection.create({ name, email, password: hashedPassword });
 
+  // döndürülen veri şifre içermemeli
   return { id: user._id, name: user.name, email: user.email };
 };
 
@@ -27,7 +28,7 @@ export const login = async (email, password) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw createHttpError(401, "Invalid credentials");
 
-  // delete existing session(s)
+  // Mevcut sessionları sil (ödev isteği)
   await SessionCollection.deleteMany({ userId: user._id });
 
   const accessToken = jwt.sign({ id: user._id }, ACCESS_SECRET, { expiresIn: ACCESS_TTL });
@@ -38,7 +39,7 @@ export const login = async (email, password) => {
     accessToken,
     refreshToken,
     accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
-    refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   });
 
   return { accessToken, refreshToken };
@@ -50,7 +51,8 @@ export const refresh = async (oldRefreshToken) => {
 
   try {
     const payload = jwt.verify(oldRefreshToken, REFRESH_SECRET);
-    // delete old session
+
+    // eski oturumu sil
     await SessionCollection.deleteOne({ refreshToken: oldRefreshToken });
 
     const accessToken = jwt.sign({ id: payload.id }, ACCESS_SECRET, { expiresIn: ACCESS_TTL });
@@ -61,7 +63,7 @@ export const refresh = async (oldRefreshToken) => {
       accessToken,
       refreshToken,
       accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
-      refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     });
 
     return { accessToken, refreshToken };

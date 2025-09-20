@@ -12,10 +12,9 @@ export const authenticate = async (req, res, next) => {
   if (!token) return next(createHttpError(401, "Invalid token format"));
 
   try {
-    
     const payload = jwt.verify(token, ACCESS_SECRET);
 
-
+    // session bulunmalı (token iptal edilmemiş olmalı)
     const session = await SessionCollection.findOne({ accessToken: token, userId: payload.id });
     if (!session) return next(createHttpError(401, "Invalid or expired token"));
 
@@ -23,8 +22,8 @@ export const authenticate = async (req, res, next) => {
       return next(createHttpError(401, "Access token expired"));
     }
 
-   
-    req.user = { _id: session.userId };
+    // controller'ların beklediği format: req.user._id
+    req.user = { _id: payload.id.toString() };
     next();
   } catch (err) {
     if (err.name === "TokenExpiredError") return next(createHttpError(401, "Access token expired"));

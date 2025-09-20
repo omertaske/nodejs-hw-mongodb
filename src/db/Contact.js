@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-const { Schema, model  } = mongoose;
-
+const { Schema, model } = mongoose;
 
 const contactSchema = new Schema(
   {
@@ -9,9 +8,9 @@ const contactSchema = new Schema(
     email: String,
     isFavourite: Boolean,
     contactType: String,
-    userId: { type: Schema.Types.ObjectId, ref: "users", required: true }, // 👈 burası ödevin şartı
+    userId: { type: Schema.Types.ObjectId, ref: "users", required: true }
   },
   { timestamps: true }
 );
 
-export const ContactCollection = model('contacts', contactSchema);
+export const ContactCollection = model("contacts", contactSchema);

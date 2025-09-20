@@ -15,8 +15,14 @@ export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const { accessToken, refreshToken } = await authService.login(email, password);
-    // set refresh token in httpOnly cookie
-    res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000, sameSite: "lax" });
+
+    // refresh token'ı httpOnly cookie'de sakla
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000
+    });
+
     res.status(200).json({ status: 200, message: "Successfully logged in an user!", data: { accessToken } });
   } catch (err) {
     next(err);
@@ -29,7 +35,13 @@ export const refresh = async (req, res, next) => {
     if (!refreshToken) throw createHttpError(401, "No refresh token provided");
 
     const { accessToken, refreshToken: newRefreshToken } = await authService.refresh(refreshToken);
-    res.cookie("refreshToken", newRefreshToken, { httpOnly: true, maxAge: 30 * 24 * 60 * 60 * 1000, sameSite: "lax" });
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000
+    });
+
     res.status(200).json({ status: 200, message: "Successfully refreshed a session!", data: { accessToken } });
   } catch (err) {
     next(err);
