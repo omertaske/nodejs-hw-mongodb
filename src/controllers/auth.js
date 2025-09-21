@@ -58,3 +58,24 @@ export const logout = async (req, res, next) => {
     next(err);
   }
 };
+
+export const sendResetEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    await authService.sendResetEmail(email);
+    res.status(200).json({ status: 200, message: "Reset password email has been successfully sent.", data: {} });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+    await authService.resetPassword(token, password);
+    res.status(200).json({ status: 200, message: "Password has been successfully reset.", data: {} });
+  } catch (err) {
+    next(err);
+  }
+};

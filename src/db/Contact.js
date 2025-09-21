@@ -7,6 +7,7 @@ const contactSchema = new Schema(
     phoneNumber: String,
     email: String,
     isFavourite: Boolean,
+       photo: String,
     contactType: String,
     userId: { type: Schema.Types.ObjectId, ref: "users", required: true }
   },

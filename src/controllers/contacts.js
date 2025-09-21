@@ -1,5 +1,6 @@
 import * as contactsService from "../services/contacts.js";
 import createHttpError from "http-errors";
+import { uploadImageFromBuffer } from "../utils/cloudinary.js";
 
 export const getAllContacts = async (req, res, next) => {
   try {
@@ -35,7 +36,21 @@ export const getContactById = async (req, res, next) => {
 
 export const createContact = async (req, res, next) => {
   try {
-    const contact = await contactsService.createContact({ userId: req.user._id, body: req.body });
+    const userId = req.user._id;
+    const body = { ...req.body };
+
+    // multer ile gelen file
+    if (req.file) {
+      const result = await uploadImageFromBuffer(req.file.buffer, req.file.mimetype, "contacts");
+      body.photo = result.secure_url;
+    }
+
+    // isFavourite string gelirse boolean yap
+    if (typeof body.isFavourite !== "undefined") {
+      body.isFavourite = body.isFavourite === "true" || body.isFavourite === true;
+    }
+
+    const contact = await contactsService.createContact({ userId, body });
     res.status(201).json({ status: 201, message: "Successfully created contact!", data: contact });
   } catch (err) {
     next(err);
@@ -44,7 +59,18 @@ export const createContact = async (req, res, next) => {
 
 export const updateContact = async (req, res, next) => {
   try {
-    const updated = await contactsService.updateContact({ userId: req.user._id, contactId: req.params.contactId, body: req.body });
+    const body = { ...req.body };
+
+    if (req.file) {
+      const result = await uploadImageFromBuffer(req.file.buffer, req.file.mimetype, "contacts");
+      body.photo = result.secure_url;
+    }
+
+    if (typeof body.isFavourite !== "undefined") {
+      body.isFavourite = body.isFavourite === "true" || body.isFavourite === true;
+    }
+
+    const updated = await contactsService.updateContact({ userId: req.user._id, contactId: req.params.contactId, body });
     if (!updated) return next(createHttpError(404, "Contact not found"));
     res.status(200).json({ status: 200, message: "Successfully updated contact!", data: updated });
   } catch (err) {
