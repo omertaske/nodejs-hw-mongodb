@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import contactsRouter from "./routers/contacts.js";
 import authRouter from "./routers/auth.js";
+import uploadRouter from "./routers/upload.js";
 import { config } from "dotenv";
 config();
 
@@ -20,6 +21,7 @@ export const setupServer = () => {
   // only routers — no duplicate manual /contacts routes
   app.use("/auth", authRouter);
   app.use("/contacts", contactsRouter);
+  app.use("/upload", uploadRouter);
 
   app.use((req, res) => res.status(404).json({ message: "Not found" }));
   app.use((err, req, res, next) => {

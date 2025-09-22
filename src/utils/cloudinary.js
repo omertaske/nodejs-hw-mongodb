@@ -1,18 +1,24 @@
-import { v2 as cloudinary } from "cloudinary";
+import { Router } from "express";
+import multer from "multer";
+import { uploadImageFromBuffer } from "../utils/cloudinary.js";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true
+const router = Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
+router.post("/", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const result = await uploadImageFromBuffer(req.file.buffer, req.file.mimetype, "test_uploads");
+
+    res.json({
+      message: "Uploaded successfully",
+      url: result.secure_url
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Upload failed" });
+  }
 });
 
-/**
- * buffer: Buffer
- * mimetype: file mimetype
- * folder: optional
- */
-export const uploadImageFromBuffer = async (buffer, mimetype, folder = "contacts") => {
-  const dataUri = `data:${mimetype};base64,${buffer.toString("base64")}`;
-  return cloudinary.uploader.upload(dataUri, { folder });
-};
+export default router;
