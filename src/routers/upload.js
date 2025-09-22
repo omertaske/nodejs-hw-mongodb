@@ -1,15 +1,13 @@
+// src/routers/upload.js
 import { Router } from "express";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinaryUtil from "../utils/cloudinary.js"; // this ensures config runs
+
+// remove cloudinary.config(...) from here if you added it in utils
 
 const router = Router();
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 const storage = new CloudinaryStorage({
   cloudinary,

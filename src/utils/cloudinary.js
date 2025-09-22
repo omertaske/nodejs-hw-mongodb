@@ -1,24 +1,32 @@
-import { Router } from "express";
-import multer from "multer";
-import { uploadImageFromBuffer } from "../utils/cloudinary.js";
+// src/utils/cloudinary.js
+import { v2 as cloudinary } from "cloudinary";
 
-const router = Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
-
-router.post("/", upload.single("file"), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-
-    const result = await uploadImageFromBuffer(req.file.buffer, req.file.mimetype, "test_uploads");
-
-    res.json({
-      message: "Uploaded successfully",
-      url: result.secure_url
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Upload failed" });
-  }
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export default router;
+// buffer -> base64 -> data URI -> upload
+export const uploadImageFromBuffer = async (buffer, mimetype = "image/jpeg", folder = "contacts") => {
+  if (!buffer) throw new Error("No buffer provided for upload");
+
+  const base64 = buffer.toString("base64");
+  const dataUri = `data:${mimetype};base64,${base64}`;
+
+  // Daha fazla opsiyon ekleyebilirsin: transformation, public_id, overwrite, ...
+  const result = await cloudinary.uploader.upload(dataUri, {
+    folder,
+    resource_type: "image",
+  });
+
+  // result contains secure_url, public_id, etc.
+  return result;
+};
+
+export const deleteImageByPublicId = async (publicId) => {
+  if (!publicId) return null;
+  return cloudinary.uploader.destroy(publicId);
+};
+
+export default cloudinary;
