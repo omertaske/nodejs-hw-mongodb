@@ -31,4 +31,6 @@ export const deleteImageByPublicId = async (publicId) => {
   return cloudinary.uploader.destroy(publicId);
 };
 
+console.log("Cloudinary key:", process.env.CLOUDINARY_API_KEY);
+
 export default cloudinary;
