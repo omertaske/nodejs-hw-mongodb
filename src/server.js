@@ -6,6 +6,10 @@ import contactsRouter from "./routers/contacts.js";
 import authRouter from "./routers/auth.js";
 import uploadRouter from "./routers/upload.js";
 import { config } from "dotenv";
+import fs from "fs";
+import path from "path";
+import swaggerUi from "swagger-ui-express";
+
 config();
 
 const PORT = process.env.PORT || 3000;
@@ -18,10 +22,27 @@ export const setupServer = () => {
   app.use(cors());
   app.use(pino({ transport: { target: "pino-pretty" } }));
 
-  // only routers — no duplicate manual /contacts routes
+  // routers
   app.use("/auth", authRouter);
   app.use("/contacts", contactsRouter);
   app.use("/upload", uploadRouter);
+
+  // static docs folder (ReDoc html template if you want to serve it)
+  app.use("/docs", express.static(path.resolve("docs")));
+
+  // swagger-ui-express on /api-docs (use bundled docs/swagger.json)
+  const swaggerJsonPath = path.resolve("docs/swagger.json");
+  if (fs.existsSync(swaggerJsonPath)) {
+    try {
+      const swaggerDocument = JSON.parse(fs.readFileSync(swaggerJsonPath, "utf-8"));
+      app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+      console.log("Swagger UI available at /api-docs");
+    } catch (err) {
+      console.warn("Could not parse docs/swagger.json:", err.message);
+    }
+  } else {
+    console.warn("docs/swagger.json not found. Run `npm run build-docs` to generate it.");
+  }
 
   app.use((req, res) => res.status(404).json({ message: "Not found" }));
   app.use((err, req, res, next) => {

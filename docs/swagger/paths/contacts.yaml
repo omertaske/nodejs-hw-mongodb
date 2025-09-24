@@ -1,0 +1,114 @@
+get:
+  tags:
+    - Contacts
+  summary: Get all contacts (paginated)
+  operationId: getContacts
+  description: Get paginated list of contacts for authenticated user. Supports query params (page, perPage, sortBy, sortOrder, type, isFavourite).
+  security:
+    - bearerAuth: []
+  parameters:
+    - name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 1
+    - name: perPage
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 10
+    - name: sortBy
+      in: query
+      required: false
+      schema:
+        type: string
+        default: name
+    - name: sortOrder
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: asc
+    - name: type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [work, home, personal]
+    - name: isFavourite
+      in: query
+      required: false
+      schema:
+        type: boolean
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/ContactList'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/ErrorResponse'
+
+post:
+  tags:
+    - Contacts
+  summary: Create a new contact
+  operationId: createContact
+  description: Create contact. Send either multipart/form-data (photo as file) or application/json (photo as url).
+  security:
+    - bearerAuth: []
+  requestBody:
+    required: true
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            phoneNumber:
+              type: string
+            email:
+              type: string
+              nullable: true
+            isFavourite:
+              type: boolean
+            contactType:
+              type: string
+              enum: [work, home, personal]
+            photo:
+              type: string
+              format: binary
+          required:
+            - name
+            - phoneNumber
+      application/json:
+        schema:
+          $ref: '../components/schemas.yaml#/components/schemas/CreateContact'
+  responses:
+    '201':
+      description: Created
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/Contact'
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/ErrorResponse'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/ErrorResponse'

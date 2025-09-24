@@ -1,0 +1,26 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: NodeJS Contacts API
+  description: |
+    Contacts API — hw7-swagger ödevi için OpenAPI dokümantasyonu.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+tags:
+  - name: Contacts
+servers:
+  - url: http://localhost:3000
+  - url: https://<YOUR_DEPLOYED_URL> # <-- render.com linkin ile değiştir
+paths:
+  /contacts:
+    $ref: './swagger/paths/contacts.yaml'
+  /contacts/{contactId}:
+    $ref: './swagger/paths/contacts_{id}.yaml'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    $ref: './swagger/components/schemas.yaml#/components/schemas'

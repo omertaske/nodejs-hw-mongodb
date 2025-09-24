@@ -1,0 +1,116 @@
+parameters:
+  - name: contactId
+    in: path
+    required: true
+    schema:
+      type: string
+    description: Contact ObjectId
+
+get:
+  tags:
+    - Contacts
+  summary: Get a contact by id
+  operationId: getContactById
+  description: Return a single contact for the authenticated user.
+  security:
+    - bearerAuth: []
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/Contact'
+    '404':
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/ErrorResponse'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/ErrorResponse'
+
+patch:
+  tags:
+    - Contacts
+  summary: Update a contact
+  operationId: updateContact
+  description: Update contact fields or photo (multipart/form-data supported).
+  security:
+    - bearerAuth: []
+  requestBody:
+    required: true
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            phoneNumber:
+              type: string
+            email:
+              type: string
+              nullable: true
+            isFavourite:
+              type: boolean
+            contactType:
+              type: string
+              enum: [work, home, personal]
+            photo:
+              type: string
+              format: binary
+      application/json:
+        schema:
+          $ref: '../components/schemas.yaml#/components/schemas/UpdateContact'
+  responses:
+    '200':
+      description: Updated
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/Contact'
+    '404':
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/ErrorResponse'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/ErrorResponse'
+
+delete:
+  tags:
+    - Contacts
+  summary: Delete a contact
+  operationId: deleteContact
+  description: Delete contact by id.
+  security:
+    - bearerAuth: []
+  responses:
+    '200':
+      description: Deleted
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/Contact'
+    '404':
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/ErrorResponse'
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas.yaml#/components/schemas/ErrorResponse'

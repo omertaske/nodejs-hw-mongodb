@@ -1,0 +1,103 @@
+components:
+  schemas:
+    Contact:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64f2c1b7a6f2d9b7a1e2d3c4"
+        name:
+          type: string
+          example: "Yulia Shevchenko"
+        phoneNumber:
+          type: string
+          example: "+380000000001"
+        email:
+          type: string
+          nullable: true
+          example: "oleh1@example.com"
+        isFavourite:
+          type: boolean
+          example: false
+        photo:
+          type: string
+          nullable: true
+          example: "https://res.cloudinary.com/..."
+        contactType:
+          type: string
+          enum: ["work", "home", "personal"]
+          example: "personal"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: ["name", "phoneNumber", "contactType"]
+
+    CreateContact:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 20
+        phoneNumber:
+          type: string
+        email:
+          type: string
+          nullable: true
+        isFavourite:
+          type: boolean
+        contactType:
+          type: string
+          enum: ["work", "home", "personal"]
+          default: "personal"
+        photo:
+          type: string
+          format: binary
+      required: ["name", "phoneNumber"]
+
+    UpdateContact:
+      type: object
+      properties:
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        email:
+          type: string
+          nullable: true
+        isFavourite:
+          type: boolean
+        contactType:
+          type: string
+          enum: ["work", "home", "personal"]
+
+    ContactList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        page:
+          type: integer
+        perPage:
+          type: integer
+        totalItems:
+          type: integer
+        totalPages:
+          type: integer
+        hasPreviousPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
