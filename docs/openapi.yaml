@@ -11,7 +11,7 @@ tags:
   - name: Contacts
 servers:
   - url: http://localhost:3000
-  - url: https://<YOUR_DEPLOYED_URL> # <-- render.com linkin ile değiştir
+  - url: https://<YOUR_DEPLOYED_URL> 
 paths:
   /contacts:
     $ref: './swagger/paths/contacts.yaml'
